@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:padel/screen/home.dart';
 import 'package:padel/screen/login.dart';
+import 'package:padel/service/user.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -54,6 +56,23 @@ class _RegisterScreenState extends State<RegisterScreen> {
     if (name.isEmpty || email.isEmpty || password.isEmpty) return;
 
     setState(() => _isLoading = true);
+
+    // register user
+    final error = await UserService().register(
+      _emailController.text,
+      _passwordController.text,
+      _nameController.text,
+      _gender,
+    );
+
+    if (error == null) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute<void>(
+          builder: (BuildContext context) => const HomeScreen(),
+        ),
+      );
+    }
 
     // Simulate network call
     // await Future.delayed(const Duration(seconds: 2));

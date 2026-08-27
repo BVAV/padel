@@ -30,7 +30,7 @@ class UserService {
       await _db.collection('users').doc(credential.user!.uid).set({
         'name': name,
         'email': email,
-        'score': 1.5, // default starting score
+        'skill': 1.5, // default starting score
         'gender': gender,
         'createdAt': FieldValue.serverTimestamp(),
       });

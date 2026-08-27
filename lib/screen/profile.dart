@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:padel/service/seed.dart';
+import 'package:padel/screen/login.dart';
 import 'package:padel/service/user.dart';
 
 class ProfileScreen extends StatelessWidget {
@@ -48,7 +48,15 @@ class ProfileScreen extends StatelessWidget {
         },
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () async => {await UserService().logout()},
+        onPressed: () async {
+          await UserService().logout();
+          if (!context.mounted) return;
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(builder: (context) => const LoginScreen()),
+            (route) => false,
+          );
+        },
         child: const Icon(Icons.logout),
       ),
     );

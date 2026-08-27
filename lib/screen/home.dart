@@ -1,6 +1,7 @@
 // fetch user data, show open games
 import 'package:flutter/material.dart';
 import 'package:padel/screen/profile.dart';
+import 'package:padel/screen/search.dart';
 import 'package:padel/screen/terrains.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -15,7 +16,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   final List<Widget> _screens = [
     const TerrainsScreen(),
-    const Center(child: Text('Search')),
+    const GamesListScreen(),
     const ProfileScreen(),
   ];
 

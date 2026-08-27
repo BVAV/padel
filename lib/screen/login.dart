@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:padel/screen/home.dart';
 import 'package:padel/screen/register.dart';
 import 'package:padel/service/user.dart';
 
@@ -54,16 +55,22 @@ class _LoginScreenState extends State<LoginScreen> {
 
     setState(() => _isLoading = true);
 
-    // Simulate network call
-    // await Future.delayed(const Duration(seconds: 2));
-
-    // TODO: handle auth result
     final error = await _userService.login(
       _emailController.text,
       _passwordController.text,
     );
 
-    // TODO redirect to home if not null
+    if (error != null) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(error)));
+    } else {
+      if (!context.mounted) return;
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (context) => const HomeScreen()),
+        (route) => false,
+      );
+    }
 
     setState(() => _isLoading = false);
   }
@@ -195,7 +202,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             builder: (context) => const RegisterScreen(),
                           ),
                         );
-                      }, // TODO redirect to register page
+                      },
                       child: const Text(
                         'Sign up',
                         style: TextStyle(

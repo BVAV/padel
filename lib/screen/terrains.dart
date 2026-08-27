@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:padel/screen/newgame.dart';
+import 'package:padel/screen/terraindetail.dart';
 import 'package:padel/service/seed.dart';
 
 void _showOptionsModal(BuildContext context) {
@@ -18,9 +20,13 @@ void _showOptionsModal(BuildContext context) {
         ),
         TextButton(
           onPressed: () {
-            Navigator.pop(context);
             // option 1 logic
-            // Navigator.push(context, route); // TODO nav to create game screen
+            Navigator.push(
+              context,
+              MaterialPageRoute<void>(
+                builder: (context) => const CreateGameScreen(),
+              ),
+            );
           },
           child: const Text('New game'),
         ),
@@ -56,6 +62,15 @@ class TerrainsScreen extends StatelessWidget {
               final data = docs[index].data() as Map<String, dynamic>;
 
               return InkWell(
+                onTap: () => {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: ((context) =>
+                          TerrainDetailScreen(terrainId: docs[index].id)),
+                    ),
+                  ),
+                },
                 child: Card(
                   margin: const EdgeInsets.only(bottom: 12),
                   clipBehavior: Clip.antiAlias,
