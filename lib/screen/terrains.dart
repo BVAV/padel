@@ -107,7 +107,9 @@ class TerrainsScreen extends StatelessWidget {
         },
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => _showOptionsModal(context),
+        onPressed: () {
+          _showOptionsModal(context);
+        },
         child: const Icon(Icons.add),
       ),
     );

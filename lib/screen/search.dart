@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class GamesListScreen extends StatefulWidget {
   const GamesListScreen({super.key});
@@ -16,8 +17,9 @@ class _GamesListScreenState extends State<GamesListScreen> {
   String? _genderFilter; // null = any, 'mixed', 'male', 'female'
   bool? _competitionFilter; // null = any, true, false
 
-  List<Map<String, dynamic>> _applyFilters(List<QueryDocumentSnapshot> docs) {
-    return docs.map((d) => d.data() as Map<String, dynamic>).where((game) {
+  List<QueryDocumentSnapshot> _applyFilters(List<QueryDocumentSnapshot> docs) {
+    return docs.where((doc) {
+      final game = doc.data() as Map<String, dynamic>;
       if (_skillFilter != null && game['level'] != _skillFilter) return false;
       if (_dateFilter != null && game['date'] != _dateFilter) return false;
       if (_hourFilter != null && game['hour'] != _hourFilter) return false;
@@ -33,6 +35,100 @@ class _GamesListScreenState extends State<GamesListScreen> {
       }
       return true;
     }).toList();
+  }
+
+  void _showMessage(BuildContext context, String message) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _handleGameTap(
+    BuildContext context,
+    String gameId,
+    Map<String, dynamic> game,
+  ) async {
+    final currentUser = FirebaseAuth.instance.currentUser;
+
+    if (currentUser == null) return;
+    final userDoc = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(currentUser.uid)
+        .get();
+    final userData = userDoc.data() ?? {};
+
+    final List<dynamic> players = game['players'] ?? [];
+    final alreadyJoined = players.any(
+      (p) => (p as Map<String, dynamic>)['id'] == currentUser.uid,
+    );
+
+    final gameGender = game['gender'] as String?;
+    final userGender = userData['gender'] as String?;
+    final genderOk =
+        gameGender == null || gameGender == 'mixed' || gameGender == userGender;
+
+    final gameLevel = (game['level'] as num?)?.toDouble();
+    final userSkill = (userData['skill'] as num?)?.toDouble();
+    final skillOk =
+        gameLevel == null ||
+        userSkill == null ||
+        (userSkill - gameLevel).abs() <= 1.0;
+
+    if (!context.mounted) return;
+
+    if (alreadyJoined) {
+      _showMessage(context, 'You are already in this game');
+      return;
+    }
+
+    if (!genderOk) {
+      _showMessage(context, 'This game is not open to your gender');
+      return;
+    }
+
+    if (!skillOk) {
+      _showMessage(context, 'Your skill level does not match this game');
+      return;
+    }
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Join Game'),
+        content: const Text('Are you sure you want to join this game?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Join'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      await FirebaseFirestore.instance.collection('games').doc(gameId).update({
+        'players': FieldValue.arrayUnion([
+          {'id': currentUser.uid, 'name': userData['name'] ?? ''},
+        ]),
+      });
+
+      if (context.mounted) {
+        _showMessage(context, 'You joined the game');
+      }
+    }
   }
 
   @override
@@ -208,17 +304,46 @@ class _GamesListScreenState extends State<GamesListScreen> {
                     : ListView.builder(
                         itemCount: filtered.length,
                         itemBuilder: (context, index) {
-                          final game = filtered[index];
+                          final doc = filtered[index];
+                          final game = doc.data() as Map<String, dynamic>;
+
+                          final List<dynamic> players = game['players'] ?? [];
+                          final names = players
+                              .map(
+                                (p) =>
+                                    (p as Map<String, dynamic>)['name']
+                                        as String? ??
+                                    '?',
+                              )
+                              .toList();
+
                           return Card(
                             margin: const EdgeInsets.symmetric(
                               horizontal: 12,
                               vertical: 6,
                             ),
                             child: ListTile(
+                              onTap: () {
+                                _handleGameTap(context, doc.id, game);
+                              },
                               title: Text(game['location'] ?? ''),
-                              subtitle: Text(
-                                '${game['date'] ?? '?'} • ${game['hour'] ?? '?'} • '
-                                '${game['gender'] ?? '?'} • Level ${game['level'] ?? '?'}',
+                              subtitle: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    '${game['date'] ?? '?'} • ${game['hour'] ?? '?'} • '
+                                    '${game['gender'] ?? '?'} • Level ${game['level'] ?? '?'}',
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    names.isEmpty
+                                        ? 'No players yet'
+                                        : 'Players: ${names.join(', ')}',
+                                    style: const TextStyle(
+                                      fontStyle: FontStyle.italic,
+                                    ),
+                                  ),
+                                ],
                               ),
                               trailing: Text('€${game['price'] ?? '?'}'),
                             ),

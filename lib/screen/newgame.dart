@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -40,7 +41,14 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
       'level': _level,
       'price': double.tryParse(_priceController.text) ?? 0,
       'createdAt': FieldValue.serverTimestamp(),
+      'players': [
+        {
+          'name': FirebaseAuth.instance.currentUser?.displayName,
+          'id': FirebaseAuth.instance.currentUser?.uid,
+        },
+      ],
     });
+    print(FirebaseAuth.instance.currentUser?.displayName);
 
     if (context.mounted) {
       ScaffoldMessenger.of(context)
