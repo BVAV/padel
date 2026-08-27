@@ -6,6 +6,8 @@ import 'firebase_options.dart';
 
 import 'screen/login.dart';
 
+import 'package:padel/screen/home.dart';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
@@ -22,7 +24,7 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'Flutter Demo',
       theme: ThemeData(colorScheme: .fromSeed(seedColor: Colors.green)),
-      home: const LoginScreen(),
+      home: const HomeScreen(),
     );
   }
 }

@@ -12,6 +12,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  String _gender = 'male';
   bool _obscurePassword = true;
   bool _isLoading = false;
 
@@ -45,7 +46,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 
-  void _onLogin() async {
+  void _onRegister() async {
     final name = _nameController.text.trim();
     final email = _emailController.text.trim();
     final password = _passwordController.text;
@@ -55,7 +56,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     setState(() => _isLoading = true);
 
     // Simulate network call
-    await Future.delayed(const Duration(seconds: 2));
+    // await Future.delayed(const Duration(seconds: 2));
 
     setState(() => _isLoading = false);
 
@@ -99,8 +100,22 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     hintText: 'Enter your name',
                   ),
                 ),
-                // TODO username field
                 const SizedBox(height: 24),
+
+                const Text('Gender'),
+                RadioGroup<String>(
+                  groupValue: _gender,
+                  onChanged: (value) => setState(() => _gender = value!),
+                  child: const Column(
+                    children: [
+                      RadioListTile<String>(title: Text('Male'), value: 'male'),
+                      RadioListTile<String>(
+                        title: Text('Female'),
+                        value: 'female',
+                      ),
+                    ],
+                  ),
+                ),
 
                 // Email field
                 TextField(
@@ -142,7 +157,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   width: double.infinity,
                   height: 52,
                   child: ElevatedButton(
-                    onPressed: _isLoading ? null : _onLogin,
+                    onPressed: _isLoading ? null : _onRegister,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: _primary,
                       foregroundColor: Colors.white,
