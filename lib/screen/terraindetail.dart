@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:padel/screen/payment.dart';
+import 'package:padel/service/game.dart';
 
 class TerrainDetailScreen extends StatefulWidget {
   final String terrainId;
@@ -109,6 +111,34 @@ class _TerrainDetailScreenState extends State<TerrainDetailScreen> {
                   onChanged: _selectedDay == null
                       ? null
                       : (value) => setState(() => _selectedHour = value),
+                ),
+                const SizedBox(height: 24),
+                ElevatedButton(
+                  onPressed: (_selectedDay == null || _selectedHour == null)
+                      ? null
+                      : () async {
+                          final error = await GameService().bookSlot(
+                            widget.terrainId,
+                            _selectedDay!,
+                            _selectedHour!,
+                          );
+
+                          if (!context.mounted) return;
+
+                          if (error != null) {
+                            ScaffoldMessenger.of(context)
+                                .showSnackBar(SnackBar(content: Text(error)));
+                          } else {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    const PaymentSuccessScreen(),
+                              ),
+                            );
+                          }
+                        },
+                  child: const Text('Book'),
                 ),
               ],
             ),
